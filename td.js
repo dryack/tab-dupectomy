@@ -2,6 +2,8 @@ chrome.browserAction.onClicked.addListener(closeDuplicateTabsInAllWindows);
 chrome.tabs.onUpdated.addListener(countDuplicateSiblings);
 chrome.tabs.onRemoved.addListener(countDuplicateSiblingsOnRemoved);
 
+const MURMUR3_SEED = 1717;
+
 function closeDuplicateTabsInAllWindows()
 {
     chrome.windows.getAll(
@@ -50,6 +52,18 @@ function countDuplicateTabs(windows)
     {
         tabs.push(windows[index].tabs)
     }
+
+    tabsObj = [];
+    for (let tIndex in tabs)
+    {
+        tabsObj.push(tabs[tIndex].map(function(tab)
+            {
+                return [murmurhash3_32_gc((tab.title + tab.url), MURMUR3_SEED), [tab.windowId, tab.title, tab.url]];
+            }
+        ));
+    }
+
+    console.log(tabsObj);
 
     const counter = new Counter();
     processDuplicates(tabs, counter);
